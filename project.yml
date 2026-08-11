@@ -22,5 +22,3 @@ targets:
         GENERATE_INFOPLIST_FILE: "NO"
         TARGETED_DEVICE_FAMILY: "1,2"
         SWIFT_VERSION: "5.0"
-    info:
-      path: SkyApp/Info.plist
