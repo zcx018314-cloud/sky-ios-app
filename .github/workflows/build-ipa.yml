@@ -1,0 +1,56 @@
+name: Build IPA
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: |
+          brew install xcodegen
+
+      - name: Generate Xcode project
+        run: |
+          xcodegen generate
+
+      - name: Build IPA (unsigned)
+        run: |
+          xcodebuild -project SkyApp.xcodeproj \
+            -scheme SkyApp \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/SkyApp.xcarchive \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            archive
+
+          mkdir -p build/Payload
+          cp -r build/SkyApp.xcarchive/Products/Applications/SkyApp.app build/Payload/
+          cd build
+          zip -r SkyApp.ipa Payload
+          rm -rf Payload
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: SkyApp-unsigned.ipa
+          path: build/SkyApp.ipa
+
+      - name: Get current time
+        id: time
+        run: echo "time=$(date +'%Y-%m-%d_%H-%M-%S')" >> $GITHUB_OUTPUT
+
+      - name: Release unsigned IPA
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: build/SkyApp.ipa
+          name: SkyApp IPA ${{ steps.time.outputs.time }}
