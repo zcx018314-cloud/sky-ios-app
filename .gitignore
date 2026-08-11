@@ -1,0 +1,12 @@
+# Xcode
+build/
+DerivedData/
+*.xcarchive
+*.ipa
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
